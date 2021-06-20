@@ -1,15 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pmed_app/Ui/liste.dart';
+import 'package:pmed_app/main.dart';
 import 'package:pmed_app/models/medicament.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
 import '../Database/database.dart';
-String   nom,  bilan;
+String     bilan,Dose;
 var db =new Dbpfe();
 List meds;
 int  selected_idpati;
 String selected_itempati;
+final nompcntrl = TextEditingController();
 final poidcntrl = TextEditingController();
 final claircntrl = TextEditingController();
 final bilicntrl = TextEditingController();
@@ -24,7 +26,7 @@ class Bilan extends StatefulWidget{
 
 class Bilanstate  extends State<Bilan>{
 
-
+  String _chosenValue;
 
 
 
@@ -34,8 +36,7 @@ class Bilanstate  extends State<Bilan>{
     for (int i = 0; i < meds.length; i++) {
       //  extrait le nom de chaque objet comme dans list screen
       String currency = Medicament.fromMap(meds[i]).nom_med;
-      nom= Medicament.fromMap(meds[i]).nom_med;
-      selected_idpati=Medicament.fromMap(meds[i]).id_med;
+
       var newItem = DropdownMenuItem(
         child: Text(currency),
         value: currency,
@@ -54,7 +55,7 @@ class Bilanstate  extends State<Bilan>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar(title: Text("Dose Administer"),
         backgroundColor: Color(0xffffae99),
       ),
 
@@ -63,7 +64,31 @@ class Bilanstate  extends State<Bilan>{
         children: [
           Column(
 
-            children: [
+            children: [Padding(padding: EdgeInsets.all(40.0)),
+
+
+              Padding(
+                padding: const EdgeInsets.all(25.0),
+                child: TextField(
+                  controller: nompcntrl,
+                  decoration: InputDecoration(
+                    labelText: ' Nom et prenom de pation :',
+                  ),
+                ),
+              ),
+
+
+
+              Padding(
+                padding: const EdgeInsets.all(25.0),
+                child: TextField(
+                  controller: poidcntrl,
+                  decoration: InputDecoration(
+                    labelText: ' Le poids :',
+                  ),
+                ),
+              ),
+
 
               Padding(padding: EdgeInsets.all(25.0)),
               Container(
@@ -116,22 +141,16 @@ class Bilanstate  extends State<Bilan>{
 
 
                                     items: getDropDownItemp(),
-                                    value: nom,
-                                    onChanged: (value) async{
-                                      setState(() {
+                                    value:selected_item,
+                                    onChanged: (value) async {
+                                      setState(()  {
+                                        selected_item = value;
+                                        nomMed=selected_item;
+                                        print(' selected item $selected_item');
 
-                                        selected_itempati = value;
-                                        print("selected: $value");
-
-                                        for(int i=0;i<meds.length;i++) {
-
-
-                                        }
-                                      });
-
-                                    },
-
-                                  );
+                                      });  med1=await db.chercherMed(selected_item);
+                                      nomBilan=med1.nombilan;
+                                    });
 
 
                                 }}
@@ -142,48 +161,50 @@ class Bilanstate  extends State<Bilan>{
                   )
               ),
 
-              Padding(padding: EdgeInsets.all(40.0)),
-
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: TextField(
-                   controller: poidcntrl,
-                   decoration: InputDecoration(
-                   labelText: ' Le poids :',
-                                               ),
-                ),
-              ),
 
               Padding(padding: EdgeInsets.all(15.0)),
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: TextField(
-                  controller: claircntrl,
-                  decoration: InputDecoration(
-                    labelText: ' La clérence rénale :',
-                  ),
+              DropdownButton<String>(
+                value: _chosenValue,
+                elevation: 16,
+                style: const TextStyle(color: Colors.black),
+                dropdownColor: Color(0xffffae99),
+                underline: Container(
+                  height: 2,
+                  color: Colors.blue,
+                ),
+                items: <String>['<30 n/p', '>30 n/p et <60 n/p', '>60 n/p'].map<DropdownMenuItem<String>>((String value) {
+
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String newValue) {
+                  setState(() {
+                    _chosenValue = newValue;
+                    if (_chosenValue == '<30 n/p') {
+                      print("One");
+                      Dose=med1.consmin;
+                    }
+                    if (_chosenValue == '>60 n/p') { print("Two");
+                    Dose=med1.consmid;
+                    print("$Dose");}
+                    if (_chosenValue == '>30 n/p et <60 n/p') { print("Three");
+                    Dose=med1.consmax;}
+                  });
+                },
+
+                hint: Text(
+                  "choisir concetration:",
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w600),
                 ),
               ),
+
               Padding(padding: EdgeInsets.all(15.0)),
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: TextField(
-                  controller: bilicntrl,
-                  decoration: InputDecoration(
-                    labelText: ' La bilirubine:',
-                  ),
-                ),
-              ),
-              Padding(padding: EdgeInsets.all(15.0)),
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: TextField(
-                  controller: tgcntrl,
-                  decoration: InputDecoration(
-                    labelText: 'Tgo/Tgp:',
-                  ),
-                ),
-              ),
+
 
               Padding(padding: EdgeInsets.all(15.0)),
 
@@ -204,40 +225,41 @@ class Bilanstate  extends State<Bilan>{
                     context: context,
                     content: Column(
                       children: [
-                        SizedBox(
-
-
+                        Text('Dose à administrer',style: TextStyle(
+                          fontSize: 25.0,color: Color(0xffffae99),
+                        ),), SizedBox(
+                          height: 25.0,
                         ),
-                        Text('La clairance rénale',style: TextStyle(
+                        Text('nom medicament',style: TextStyle(
                           fontSize: 23.0,color: Color(0xff4fcab8),
                         ),),
-                        Text('$Init',style: TextStyle(
+                        Text('$nomMed',style: TextStyle(
                           fontSize: 20.0,
                         ),),
                         SizedBox(
                           height: 23.0,
                         ),
-                        Text('La bilrubine',style: TextStyle(
+                        Text('nom bilan',style: TextStyle(
                           fontSize: 20.0,color: Color(0xff4fcab8),
                         ),),
 
-                        Text('$Minim',style:TextStyle(
+                        Text('$nomBilan',style:TextStyle(
                           fontSize: 20.0,
                         ),),
                         SizedBox(
                           height: 23.0,
                         ),
-                        Text('Tgo/Tgp',style: TextStyle(
+                        Text('La Dose :',style: TextStyle(
                           fontSize: 20.0,color: Color(0xff4fcab8),
                         ),),
 
-                        Text('$Maxi',style:TextStyle(
+                        Text('$Dose',style:TextStyle(
                           fontSize: 20.0,
                         ),),
 
                       ],
                     ),
-                    title: "Dose à administrer",
+                   title: ""
 
                   )
                       .show();
