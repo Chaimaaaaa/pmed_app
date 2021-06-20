@@ -1,12 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:pmed_app/models/medicament.dart';
 
 import 'Ui/bilan.dart';
 import 'Ui/liste.dart';
+String selected_item=null;
 
+String Dose ,nomMed,nomBilan;
+Medicament med1;
 void main() {
   runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
     home: Start(),
 
   ));
