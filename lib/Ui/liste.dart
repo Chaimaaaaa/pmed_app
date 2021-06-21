@@ -388,6 +388,7 @@ ListView _buildlistview() {
                 fontWeight: FontWeight.w800,
                 color: Color(0xff4fc9b8),
                 fontSize: 23.0,
+
               ),
 
               ),
